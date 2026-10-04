@@ -1,10 +1,12 @@
-# @tintinweb/pi-tasks
+# pi-tasks（C-git-qok fork）
+
+> 本 fork 基于上游 [tintinweb/pi-tasks](https://github.com/tintinweb/pi-tasks)（v0.9.0），仅做适配性修改：typebox 改为 peer 依赖（兼容 Pi 0.99.2+ 扩展加载器）；其余功能与上游一致。
 
 A [pi](https://pi.dev) extension that brings **Claude Code-style task tracking and coordination** to pi. Track multi-step work with structured tasks, dependency management, and a persistent visual widget.
 
 > **Status:** Early release.
 
-<img width="600" alt="pi-tasks screenshot" src="https://github.com/tintinweb/pi-tasks/raw/master/media/screenshot.png" />
+<img width="600" alt="pi-tasks screenshot" src="https://github.com/C-git-qok/pi-tasks/raw/master/media/screenshot.png" />
 
 https://github.com/user-attachments/assets/1d0ee87a-e0a5-4bfa-a9b9-2f9144cb905b
 
@@ -20,12 +22,12 @@ https://github.com/user-attachments/assets/1d0ee87a-e0a5-4bfa-a9b9-2f9144cb905b
 - **Shared task lists** — multiple pi sessions can share a file-backed task list for agent team coordination
 - **File locking** — concurrent access is safe when multiple sessions share a task list
 - **Background process tracking** — track spawned processes with output buffering, blocking wait, and graceful stop
-- **Subagent integration** — tasks with `agentType` can be executed as subagents via `TaskExecute` (requires [@tintinweb/pi-subagents](https://github.com/tintinweb/pi-subagents)). Auto-cascade mode flows through the task DAG automatically when enabled.
+- **Subagent integration** — tasks with `agentType` can be executed as subagents via `TaskExecute` (requires [@C-git-qok/pi-subagents](https://github.com/C-git-qok/pi-subagents)). Auto-cascade mode flows through the task DAG automatically when enabled.
 
 ## Install
 
 ```bash
-pi install npm:@tintinweb/pi-tasks
+pi install git:github.com/C-git-qok/pi-tasks
 ```
 
 Or load directly for development:
@@ -184,7 +186,7 @@ Stop a running background task process. Sends SIGTERM, waits 5 seconds, then SIG
 
 ### `TaskExecute`
 
-Execute one or more tasks as background subagents. Requires [@tintinweb/pi-subagents](https://github.com/tintinweb/pi-subagents).
+Execute one or more tasks as background subagents. Requires [@C-git-qok/pi-subagents](https://github.com/C-git-qok/pi-subagents).
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
@@ -317,16 +319,16 @@ Tasks
 - **Clear all** — remove all tasks regardless of status
 - **Settings** — configure project overrides for task storage, auto-cascade, auto-clear completed tasks, and [widget display](#widget-display-settings) (sort order, max visible, show all, hidden position)
 
-## Cross-extension Communication with [`@tintinweb/pi-subagents`](https://github.com/tintinweb/pi-subagents)
+## Cross-extension Communication with [`@C-git-qok/pi-subagents`](https://github.com/C-git-qok/pi-subagents)
 
-[`pi-tasks`](https://github.com/tintinweb/pi-tasks) communicates with [`@tintinweb/pi-subagents`](https://github.com/tintinweb/pi-subagents) via pi's eventbus using a scoped request/reply RPC protocol. No shared global state — just events.
+[`pi-tasks`](https://github.com/C-git-qok/pi-tasks) communicates with [`@C-git-qok/pi-subagents`](https://github.com/C-git-qok/pi-subagents) via pi's eventbus using a scoped request/reply RPC protocol. No shared global state — just events.
 
 ### Presence Detection
 
 Load order doesn't matter. Two handshake paths ensure detection regardless of which extension loads first:
 
-1. **Ping on init** — [`pi-tasks`](https://github.com/tintinweb/pi-tasks) emits `subagents:rpc:ping` with a unique `requestId` and listens for `subagents:rpc:ping:reply:{requestId}`. If [`pi-subagents`](https://github.com/tintinweb/pi-subagents) is already loaded, it replies immediately.
-2. **Ready broadcast** — [`pi-subagents`](https://github.com/tintinweb/pi-subagents) emits `subagents:ready` when it initializes. If [`pi-tasks`](https://github.com/tintinweb/pi-tasks) loaded first, it picks this up.
+1. **Ping on init** — [`pi-tasks`](https://github.com/C-git-qok/pi-tasks) emits `subagents:rpc:ping` with a unique `requestId` and listens for `subagents:rpc:ping:reply:{requestId}`. If [`pi-subagents`](https://github.com/C-git-qok/pi-subagents) is already loaded, it replies immediately.
+2. **Ready broadcast** — [`pi-subagents`](https://github.com/C-git-qok/pi-subagents) emits `subagents:ready` when it initializes. If [`pi-tasks`](https://github.com/C-git-qok/pi-tasks) loaded first, it picks this up.
 
 ```
 ┌─────────────┐                    ┌──────────────────┐
@@ -356,7 +358,7 @@ The returned `id` is stored in an in-memory `agentTaskMap` (agentId → taskId) 
 
 ### Lifecycle Events
 
-[`pi-subagents`](https://github.com/tintinweb/pi-subagents) emits lifecycle events that [`pi-tasks`](https://github.com/tintinweb/pi-tasks) listens to:
+[`pi-subagents`](https://github.com/C-git-qok/pi-subagents) emits lifecycle events that [`pi-tasks`](https://github.com/C-git-qok/pi-tasks) listens to:
 
 | Event | Payload | Action |
 |-------|---------|--------|
@@ -375,11 +377,11 @@ pi-tasks                                pi-subagents
    │                                         │
 ```
 
-Fire-and-forget, and deliberately outside the version handshake — a [`pi-subagents`](https://github.com/tintinweb/pi-subagents) without the handler keeps notifying, exactly as before. An agent that is still running is never consumed: nothing has been read from it yet, and its notification is the only thing that will announce it.
+Fire-and-forget, and deliberately outside the version handshake — a [`pi-subagents`](https://github.com/C-git-qok/pi-subagents) without the handler keeps notifying, exactly as before. An agent that is still running is never consumed: nothing has been read from it yet, and its notification is the only thing that will announce it.
 
 ### Standalone Mode
 
-If [`pi-subagents`](https://github.com/tintinweb/pi-subagents) is not installed, everything works except `TaskExecute`, which returns a friendly message explaining the agent can fall back to plain Agent-tool spawns — with the caveat that pi-tasks won't track those (status stays `pending`, auto-cascade won't fire, `TaskOutput` stays empty). All core task tools (create, list, get, update, dependencies, widget, system-reminder injection) function independently.
+If [`pi-subagents`](https://github.com/C-git-qok/pi-subagents) is not installed, everything works except `TaskExecute`, which returns a friendly message explaining the agent can fall back to plain Agent-tool spawns — with the caveat that pi-tasks won't track those (status stays `pending`, auto-cascade won't fire, `TaskOutput` stays empty). All core task tools (create, list, get, update, dependencies, widget, system-reminder injection) function independently.
 
 ## Architecture
 
